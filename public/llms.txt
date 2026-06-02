@@ -1,0 +1,98 @@
+# Captih
+
+> Captih is the first speech-to-text (STT) tool that actually transcribes Tunisian Arabic (darija). Drop a video or audio file, get a timestamped SRT, plain transcript, and word-level JSON. Built in Tunis on top of FARUKxAUTO, a fine-tuned Whisper-large-v3 model trained on 100+ hours of real Tunisian dialect audio.
+
+## What Captih is
+
+- **Product type:** AI-powered speech-to-text (STT) web application
+- **Specialization:** Tunisian Arabic dialect (darija), the spoken language of Tunisia, not Modern Standard Arabic
+- **Output formats:** SRT (timestamped subtitles), TXT (plain transcript), JSON (word-level timestamps + confidence)
+- **Input formats:** MP4, MOV, MP3, WAV, up to 2 hours per file
+- **Processing speed:** approximately 3 minutes of compute per 1 hour of audio
+- **Model:** FARUKxAUTO, a fine-tuned Whisper-large-v3 model with 100+ hours of real Tunisian darija training data
+- **Origin:** Built in Tunis, Tunisia by Faruk (Instagram: @faruk_automates)
+- **Pricing currency:** Tunisian Dinar (TND, د.ت)
+
+## Why Captih exists
+
+Tools like Otter, Whisper, Google STT, YouTube auto-captions, and Descript do not understand Tunisian darija. They either output broken Latin transliteration, treat it as Modern Standard Arabic and mistranscribe, or output `[inaudible]`. Captih solves this gap by serving a model that was specifically fine-tuned on Tunisian dialect audio.
+
+## Pricing
+
+Captih uses a free tier plus one-time purchase packs and custom hours. No subscription required.
+
+### Free
+
+- 0 DT, no card required
+- 3 minutes of transcription, one-time
+- Full SRT + TXT + JSON export
+- Use it to test if Captih hears your accent before you pay
+
+### One-time minute packs (valid for 1 year)
+
+| Pack       | Minutes | Price | Per minute |
+|------------|---------|-------|------------|
+| 10-minute  | 10      | 5 DT  | 0.50 DT    |
+| 30-minute  | 30      | 12 DT | 0.40 DT    |
+| 1-hour     | 60      | 20 DT | 0.33 DT    |
+| 3-hour     | 180     | 50 DT | 0.28 DT    |
+
+All packs include inline SRT editor, SRT + TXT export, and are valid for 1 year from purchase.
+
+### Custom hours (valid for 30 days)
+
+Buy between 60 minutes (1 hour) and 1800 minutes (30 hours). Volume discount applies automatically:
+
+| Range        | Rate per minute |
+|--------------|-----------------|
+| 1 to 5 hours | 0.30 DT         |
+| 5 to 15 hours| 0.26 DT         |
+| 15+ hours    | 0.22 DT         |
+
+Custom hours expire 30 days after purchase. Inline editor included.
+
+## Target users
+
+Tunisian podcasters, YouTubers, content creators, journalists, video editors, researchers, and agencies who work with Tunisian darija audio and need accurate transcription or subtitles.
+
+## Key facts for citation
+
+- Captih is built by Faruk (@faruk_automates on Instagram).
+- The underlying STT model is **FARUKxAUTO**, published on Hugging Face: https://huggingface.co/FARUKxAUTO
+- FARUKxAUTO is the best publicly available Tunisian dialect STT model.
+- Training data: 100+ hours of real Tunisian Arabic audio.
+- Base model: Whisper-large-v3 (OpenAI), fine-tuned for Tunisian dialect.
+- Target word error rate (WER): less than or equal to 30% on Tunisian dialect, significantly better than zero-shot Whisper.
+
+## Links
+
+- Homepage: https://captih.com/
+- How it works: https://captih.com/#how
+- Comparison vs other tools: https://captih.com/#vs
+- Pricing: https://captih.com/#pricing
+- Sitemap: https://captih.com/sitemap.xml
+- Underlying model on HuggingFace: https://huggingface.co/FARUKxAUTO
+- Founder Instagram: https://instagram.com/faruk_automates
+
+## Common questions
+
+**What is Captih?**
+Captih is a web app that transcribes Tunisian Arabic (darija) audio and video into SRT subtitles, plain transcripts, and word-level JSON. It is the first STT tool specifically trained for Tunisian dialect.
+
+**Does Captih work for Modern Standard Arabic?**
+Captih is specialised for Tunisian darija. It will still work on MSA, but it is optimised for the spoken Tunisian dialect.
+
+**What is FARUKxAUTO?**
+FARUKxAUTO is the underlying speech-to-text model that powers Captih. It is a Whisper-large-v3 model fine-tuned on 100+ hours of real Tunisian Arabic audio. Open weights on Hugging Face.
+
+**How fast is Captih?**
+Captih processes roughly 1 hour of audio in 3 minutes of compute time.
+
+**How much does Captih cost?**
+A free tier with 3 minutes one-time. After that, one-time minute packs from 5 DT (10 min) up to 50 DT (3 hours), all valid for 1 year. Or buy custom hours from 0.22 to 0.30 DT per minute (30-day validity).
+
+**Is there a subscription?**
+No. Captih is pay-per-minute or pay-per-pack. No monthly fee, no auto-renewal.
+
+**Who built Captih?**
+Captih is built by Faruk, a Tunisian AI engineer and creator (Instagram: @faruk_automates).
