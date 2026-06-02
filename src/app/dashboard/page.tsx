@@ -27,6 +27,7 @@ import { CircularProgress } from "@/components/dashboard/CircularProgress";
 import { ActivityHeatmap } from "@/components/dashboard/ActivityHeatmap";
 import { GoalsProgress } from "@/components/dashboard/GoalsProgress";
 import { TranscriptCard } from "@/components/dashboard/TranscriptCard";
+import { ExpiryBanner } from "@/components/dashboard/ExpiryBanner";
 
 const PERIOD_OPTIONS: ReadonlyArray<{ label: string; value: Period }> = [
   { label: "Week", value: "week" },
@@ -102,6 +103,8 @@ export default function DashboardPage() {
             period={period}
             onPeriodChange={setPeriod}
           />
+
+          {!isLoading && <ExpiryBanner />}
 
           {lowCredits && !showWelcome && !isLoading && <TopUpBanner credits={credits} />}
 

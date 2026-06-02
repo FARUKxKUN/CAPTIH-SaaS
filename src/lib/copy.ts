@@ -68,6 +68,36 @@ export const COPY = {
     englishSignoff: "We speak Tunisian. And we hear you.",
     signature: "Faruk + Yassine · Tunis",
   },
+  founding: {
+    eyebrow: "Founding offer",
+    headline: "First 100 creators get every pack at half price. Forever.",
+    sub: "Once we hit 100, founding pricing closes. Regular pack prices apply for everyone after.",
+    spotsClaimed: 23,
+    spotsTotal: 100,
+    // Largest pack used as the headline savings example
+    sampleLabel: "3-hour pack",
+    regularPriceDT: 88,
+    foundingPriceDT: 44,
+    perks: [
+      {
+        title: "50% off every pack, forever",
+        body: "10/22/38/88 DT packs become 5/11/19/44 DT. Locked at half price as long as your account stays active.",
+      },
+      {
+        title: "Direct line to Faruk + Yassine",
+        body: "WhatsApp/Discord access for feature requests, edge cases, and beta features.",
+      },
+      {
+        title: "Founder credit on the about page",
+        body: "Your name in the credits when we launch publicly. You helped build this.",
+      },
+    ],
+    cta: "Lock in 50% off",
+    finePrint:
+      "50% off every pack you buy, for life. No subscription, no monthly bill. Just permanent discount on every top-up.",
+    expiredHeadline: "Founding spots are gone.",
+    expiredSub: "All 100 founding spots claimed. Regular pricing below.",
+  },
   pricing: {
     eyebrow: "Pricing",
     headline: "Being heard, in your own language.",
@@ -80,7 +110,7 @@ export const COPY = {
       cta: "Start free",
     },
     packsLabel: "Buy a pack",
-    packsSub: "Pay once. Minutes valid for 1 year. Inline editor included.",
+    packsSub: "Pay once. Minutes valid for 30 days. Inline editor included.",
     packs: [
       {
         id: "pack-10",
@@ -122,7 +152,7 @@ export const COPY = {
     packFeatures: [
       "Inline SRT editor included",
       "SRT + TXT export",
-      "Valid for 1 year",
+      "Valid for 30 days",
     ],
     custom: {
       eyebrow: "Need more flexibility?",

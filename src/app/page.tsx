@@ -5,6 +5,7 @@ import { OurStorySection } from "@/components/OurStorySection";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
 import { ComparisonSection } from "@/components/ComparisonSection";
 import { TrustStripSection } from "@/components/TrustStripSection";
+import { FoundingOfferSection } from "@/components/FoundingOfferSection";
 import { PricingSection } from "@/components/PricingSection";
 
 export default function Home() {
@@ -21,6 +22,7 @@ export default function Home() {
         <HowItWorksSection />
         <ComparisonSection />
         <TrustStripSection />
+        <FoundingOfferSection />
         <PricingSection />
       </main>
       <SiteFooter />

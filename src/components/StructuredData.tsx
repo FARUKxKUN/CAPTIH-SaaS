@@ -74,7 +74,7 @@ export function StructuredData() {
     },
   };
 
-  // Map each one-time pack to its own Offer (minute-credit packs that never expire for 1 year)
+  // Map each one-time pack to its own Offer (minute-credit packs valid 30 days)
   const packOffers = COPY.pricing.packs.map((pack) => ({
     "@type": "Offer",
     name: `Captih ${pack.minutes}-minute pack`,
@@ -125,7 +125,7 @@ export function StructuredData() {
       "Plain transcript export",
       "Auto audio extraction from video (MP4, MOV)",
       "Inline SRT editor on all paid packs",
-      "Pay-once minute packs (valid 1 year)",
+      "Pay-once minute packs (valid 30 days)",
       "Custom hour purchases (1–30 hours)",
     ],
     creator: { "@id": `${base}/#organization` },
