@@ -1,14 +1,11 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { SignIn } from "@clerk/nextjs";
 import { SiteHeader } from "@/components/SiteHeader";
-import { AuthForm } from "@/components/auth/AuthForm";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 
 export default function SignInPage() {
-  const params = useSearchParams();
-  const redirectUrl = params.get("redirect_url") ?? "/dashboard";
-
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
@@ -23,7 +20,11 @@ export default function SignInPage() {
         }
         subtitle="Your transcripts, your packs, your dashboard — right where you left them."
       >
-        <AuthForm initialMode="sign-in" redirectUrl={redirectUrl} />
+        <SignIn
+          appearance={clerkAppearance}
+          signUpUrl="/sign-up"
+          forceRedirectUrl="/dashboard"
+        />
       </AuthLayout>
     </div>
   );

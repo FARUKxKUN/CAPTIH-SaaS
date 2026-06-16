@@ -3,71 +3,64 @@
 import type { TranscribeJob } from "./transcribe";
 
 /**
- * Client-side job storage for v1.
- * Persists completed jobs in localStorage so /result/[id] can be reopened
- * and the dashboard can show history before Supabase is wired in.
+ * Job history — backed by Supabase via the /api/jobs endpoints.
+ * Auth is carried by the sb-access-token cookie (sent automatically with
+ * same-origin fetches), so these calls work for the signed-in user only.
  *
- * When Supabase lands, only the producer/consumer swap to API calls — the
- * /result/[id] page consumes `getJob(id)` regardless of source.
+ * Functions are async (network-backed). The result page and dashboard await them.
  */
 
-const STORAGE_KEY = "captih.jobs.v1";
-const MAX_JOBS = 50;
-
-function readAll(): TranscribeJob[] {
-  if (typeof window === "undefined") return [];
+export async function listJobs(): Promise<TranscribeJob[]> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as TranscribeJob[]) : [];
+    const res = await fetch("/api/jobs?limit=50", { credentials: "include" });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { jobs?: TranscribeJob[] };
+    return data.jobs ?? [];
   } catch {
     return [];
   }
 }
 
-function writeAll(jobs: TranscribeJob[]): void {
-  if (typeof window === "undefined") return;
+export async function getJob(id: string): Promise<TranscribeJob | null> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(jobs.slice(0, MAX_JOBS)));
+    const res = await fetch(`/api/jobs/${id}`, { credentials: "include" });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { job?: TranscribeJob };
+    return data.job ?? null;
   } catch {
-    /* quota or private mode — ignore */
+    return null;
   }
 }
 
-export function saveJob(job: TranscribeJob): void {
-  const all = readAll();
-  const filtered = all.filter((j) => j.id !== job.id);
-  writeAll([job, ...filtered]);
-}
-
-export function getJob(id: string): TranscribeJob | null {
-  return readAll().find((j) => j.id === id) ?? null;
-}
-
-export function listJobs(): TranscribeJob[] {
-  return readAll();
-}
-
-export function deleteJob(id: string): void {
-  writeAll(readAll().filter((j) => j.id !== id));
+export async function deleteJob(id: string): Promise<void> {
+  try {
+    await fetch(`/api/jobs/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+  } catch {
+    /* best-effort */
+  }
 }
 
 /**
- * Replace the segments of an existing job, regenerate the transcript, and persist.
- * Used by the editor's auto-save.
+ * Replace the segments of a job (editor auto-save) and persist to Supabase.
  */
-export function updateJobSegments(
+export async function updateJobSegments(
   id: string,
   segments: TranscribeJob["segments"]
-): TranscribeJob | null {
-  const all = readAll();
-  const idx = all.findIndex((j) => j.id === id);
-  if (idx === -1) return null;
-  const transcript = segments.map((s) => s.text).join("\n");
-  const updated: TranscribeJob = { ...all[idx], segments, transcript };
-  const next = [...all];
-  next[idx] = updated;
-  writeAll(next);
-  return updated;
+): Promise<TranscribeJob | null> {
+  try {
+    const res = await fetch(`/api/jobs/${id}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ segments }),
+    });
+    if (!res.ok) return null;
+    const data = (await res.json()) as { job?: TranscribeJob };
+    return data.job ?? null;
+  } catch {
+    return null;
+  }
 }

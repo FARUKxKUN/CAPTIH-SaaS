@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { use, useCallback, useEffect, useRef, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import {
   formatBytes,
@@ -11,9 +11,18 @@ import {
   fileBaseName,
   safeDownloadName,
   segmentsToSrt,
+  segmentsToVtt,
   segmentsToTxt,
+  type SrtSegment,
   type TranscribeJob,
+  type TxtStyle,
 } from "@/lib/transcribe";
+import {
+  groupWordsIntoCaptions,
+  DEFAULT_CAPTION_SETTINGS,
+  CAPTION_LIMITS,
+  type CaptionSettings,
+} from "@/lib/caption-format";
 import { getJob } from "@/lib/jobStorage";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -21,13 +30,20 @@ import { SignUpToDownloadModal } from "@/components/SignUpToDownloadModal";
 
 type Params = { id: string };
 type DownloadKind = "srt" | "txt";
+type ExportFormat = "srt" | "vtt" | "txt";
 
 export default function ResultPage({ params }: { params: Promise<Params> }) {
   const { id } = use(params);
   const [job, setJob] = useState<TranscribeJob | null | undefined>(undefined);
 
   useEffect(() => {
-    setJob(getJob(id));
+    let cancelled = false;
+    getJob(id).then((j) => {
+      if (!cancelled) setJob(j);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   return (
@@ -75,12 +91,14 @@ function NotFoundState() {
 }
 
 function ResultView({ job }: { job: TranscribeJob }) {
+  // Preview shows the default cleaned captions. Final formatting (caption
+  // sizing, format, cleanup) is chosen in the export popup on download.
   const previewSegments = job.segments.slice(0, 30);
   const remaining = job.segments.length - previewSegments.length;
 
   return (
     <>
-      <Header job={job} />
+      <Header job={job} segmentCount={job.segments.length} />
       <Downloads job={job} />
       <Preview previewSegments={previewSegments} remaining={remaining} />
       <FooterCta jobId={job.id} />
@@ -88,7 +106,13 @@ function ResultView({ job }: { job: TranscribeJob }) {
   );
 }
 
-function Header({ job }: { job: TranscribeJob }) {
+function Header({
+  job,
+  segmentCount,
+}: {
+  job: TranscribeJob;
+  segmentCount: number;
+}) {
   return (
     <div className="mb-8">
       <p className="font-mono text-xs uppercase tracking-wider text-ok">
@@ -99,49 +123,80 @@ function Header({ job }: { job: TranscribeJob }) {
       </h1>
       <p className="mt-2 font-mono text-xs text-mute">
         {formatDuration(job.durationSec)} · {formatBytes(job.sizeBytes)} ·{" "}
-        {job.segments.length} segments
+        {segmentCount} captions
       </p>
     </div>
   );
 }
 
-function Downloads({ job }: { job: TranscribeJob }) {
+function Downloads({
+  job,
+}: {
+  job: TranscribeJob;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const base = safeDownloadName(fileBaseName(job.filename));
   const autoDownloadFired = useRef(false);
 
-  // Modal gate state
+  const hasWords = !!job.words && job.words.length > 0;
+
+  // Sign-up gate modal state
   const [modalFormat, setModalFormat] = useState<DownloadKind | null>(null);
+  // Export-options popup state: which trigger opened it (srt | txt), or null.
+  const [exportFor, setExportFor] = useState<DownloadKind | null>(null);
 
   // Real auth check — no dev bypass here. Modal handles the dev case.
   const canDownload = isLoaded && isSignedIn;
 
-  // The actual blob-creation routine — pure, no gate check
-  const triggerDownload = useCallback(
-    (kind: DownloadKind) => {
-      const content =
-        kind === "srt"
-          ? segmentsToSrt(job.segments)
-          : segmentsToTxt(job.segments);
-      const blob = new Blob([content], {
-        type:
-          kind === "srt" ? "application/x-subrip" : "text/plain;charset=utf-8",
-      });
+  // Build + download a file. Cleanup is always applied (stored words are
+  // already Gemini-cleaned), so we just re-chunk them per the export settings.
+  const exportFile = useCallback(
+    (opts: {
+      format: ExportFormat;
+      txtStyle: TxtStyle;
+      sizing: CaptionSettings;
+    }) => {
+      // Re-chunk cleaned words at the chosen settings; fall back to stored
+      // captions for older jobs without word data.
+      const source: SrtSegment[] = hasWords
+        ? groupWordsIntoCaptions(job.words!, opts.sizing)
+        : [...job.segments];
+
+      let content: string;
+      let ext: string;
+      let mime: string;
+      if (opts.format === "srt") {
+        content = segmentsToSrt(source);
+        ext = "srt";
+        mime = "application/x-subrip;charset=utf-8";
+      } else if (opts.format === "vtt") {
+        content = segmentsToVtt(source);
+        ext = "vtt";
+        mime = "text/vtt;charset=utf-8";
+      } else {
+        content = segmentsToTxt(source, opts.txtStyle);
+        ext = "txt";
+        mime = "text/plain;charset=utf-8";
+      }
+
+      // UTF-8 BOM so Windows editors / CapCut render Arabic correctly.
+      const BOM = "﻿";
+      const blob = new Blob([BOM + content], { type: mime });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${base}.${kind}`;
+      a.download = `${base}.${ext}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     },
-    [job.segments, base]
+    [base, job.segments, job.words, hasWords]
   );
 
-  // Resume after sign-up: ?download=srt|txt → trigger download → go to dashboard
+  // Resume after sign-up: ?download=srt|txt → quick default download → dashboard
   useEffect(() => {
     if (autoDownloadFired.current) return;
     if (!canDownload) return;
@@ -150,28 +205,30 @@ function Downloads({ job }: { job: TranscribeJob }) {
 
     autoDownloadFired.current = true;
 
-    // Strip the query param so refresh doesn't loop
     const cleanUrl = new URL(window.location.href);
     cleanUrl.searchParams.delete("download");
     window.history.replaceState({}, "", cleanUrl.toString());
 
-    // Tiny delay so the page paints before download dialog fires
     const timer = setTimeout(() => {
-      triggerDownload(fmt as DownloadKind);
-      // Then nudge to dashboard with welcome flag
+      exportFile({
+        format: fmt,
+        txtStyle: "lines",
+        sizing: DEFAULT_CAPTION_SETTINGS,
+      });
       setTimeout(() => router.push("/dashboard?welcome=true"), 1200);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [canDownload, searchParams, router, triggerDownload]);
+  }, [canDownload, searchParams, router, exportFile]);
 
   const handleDownload = (kind: DownloadKind) => {
-    if (canDownload) {
-      triggerDownload(kind);
+    if (!canDownload) {
+      // Not signed in → show the sign-up gate.
+      setModalFormat(kind);
       return;
     }
-    // Show the in-page modal instead of redirecting
-    setModalFormat(kind);
+    // Signed in → open the export-options popup.
+    setExportFor(kind);
   };
 
 
@@ -219,7 +276,296 @@ function Downloads({ job }: { job: TranscribeJob }) {
         redirectUrl={`/result/${job.id}?download=${modalFormat ?? "srt"}`}
         onClose={() => setModalFormat(null)}
       />
+
+      {exportFor && (
+        <ExportModal
+          initialFormat={exportFor}
+          hasSizing={hasWords}
+          previewWords={job.words ?? null}
+          onClose={() => setExportFor(null)}
+          onExport={(opts) => {
+            exportFile(opts);
+            setExportFor(null);
+          }}
+        />
+      )}
     </>
+  );
+}
+
+function ExportModal({
+  initialFormat,
+  hasSizing,
+  previewWords,
+  onClose,
+  onExport,
+}: {
+  initialFormat: ExportFormat;
+  hasSizing: boolean;
+  previewWords: readonly SrtSegment[] | null;
+  onClose: () => void;
+  onExport: (opts: {
+    format: ExportFormat;
+    txtStyle: TxtStyle;
+    sizing: CaptionSettings;
+  }) => void;
+}) {
+  const [format, setFormat] = useState<ExportFormat>(initialFormat);
+  const [txtStyle, setTxtStyle] = useState<TxtStyle>("lines");
+  const [sizing, setSizing] = useState<CaptionSettings>(
+    DEFAULT_CAPTION_SETTINGS
+  );
+  // Bumped by "Reorganize" to recompute the live caption count.
+  const [reorgKey, setReorgKey] = useState(0);
+
+  const setSize = <K extends keyof CaptionSettings>(
+    key: K,
+    value: CaptionSettings[K]
+  ) => setSizing((s) => ({ ...s, [key]: value }));
+
+  // Chunking only applies to subtitle formats and needs word data.
+  const showChunking = hasSizing && format !== "txt";
+
+  // Live caption count from current chunking (drives the Reorganize feedback).
+  const captionCount = useMemo(() => {
+    if (!showChunking || !previewWords) return null;
+    return groupWordsIntoCaptions(previewWords, sizing).length;
+    // reorgKey forces recompute even if sizing object identity is stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewWords, sizing, showChunking, reorgKey]);
+
+  const formats: { id: ExportFormat; label: string }[] = [
+    { id: "srt", label: "SRT" },
+    { id: "vtt", label: "VTT" },
+    { id: "txt", label: "TXT" },
+  ];
+
+  const txtStyles: { id: TxtStyle; label: string }[] = [
+    { id: "lines", label: "One line per caption" },
+    { id: "paragraph", label: "Flowing paragraph" },
+    { id: "timestamped", label: "With timestamps" },
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl border border-line bg-surface p-6 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Export format */}
+        <p className="font-mono text-xs uppercase tracking-wider text-mute">
+          Export format
+        </p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {formats.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => setFormat(f.id)}
+              className={`rounded-xl border px-3 py-3 font-mono text-sm font-medium transition-colors ${
+                format === f.id
+                  ? "border-signal bg-signal/10 text-signal"
+                  : "border-line text-bone hover:border-mute"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* TXT style */}
+        {format === "txt" && (
+          <div className="mt-5">
+            <p className="mb-2 font-mono text-xs uppercase tracking-wider text-mute">
+              Text style
+            </p>
+            <div className="flex flex-col gap-2">
+              {txtStyles.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setTxtStyle(s.id)}
+                  className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                    txtStyle === s.id
+                      ? "border-signal bg-signal/10 text-signal"
+                      : "border-line text-mute hover:border-mute"
+                  }`}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Chunking — subtitle formats only */}
+        {showChunking && (
+          <>
+            <div className="mt-6 border-t border-line pt-5">
+              <p className="font-mono text-xs uppercase tracking-wider text-mute">
+                Chunking for export
+              </p>
+
+              {/* By Words / By Characters */}
+              <div className="mt-3 flex rounded-xl border border-line p-1">
+                {(
+                  [
+                    { id: "words", label: "By Words" },
+                    { id: "characters", label: "By Characters" },
+                  ] as const
+                ).map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSize("mode", m.id)}
+                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      sizing.mode === m.id
+                        ? "bg-signal/10 text-signal"
+                        : "text-mute hover:text-bone"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Slider for the active mode */}
+              {sizing.mode === "words" ? (
+                <div className="mt-4">
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-sm text-bone">Words per chunk</label>
+                    <span className="font-mono text-sm text-signal">
+                      {sizing.wordsPerChunk}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={CAPTION_LIMITS.wordsPerChunk.min}
+                    max={CAPTION_LIMITS.wordsPerChunk.max}
+                    step={CAPTION_LIMITS.wordsPerChunk.step}
+                    value={sizing.wordsPerChunk}
+                    onChange={(e) =>
+                      setSize("wordsPerChunk", Number(e.target.value))
+                    }
+                    className="w-full accent-signal"
+                  />
+                  <p className="mt-1 text-[11px] text-mute">
+                    Tip: set to <span className="text-bone">1 word</span> for
+                    word-level chunks.
+                  </p>
+                </div>
+              ) : (
+                <div className="mt-4">
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-sm text-bone">
+                      Characters per chunk
+                    </label>
+                    <span className="font-mono text-sm text-signal">
+                      {sizing.maxChars}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={CAPTION_LIMITS.maxChars.min}
+                    max={CAPTION_LIMITS.maxChars.max}
+                    step={CAPTION_LIMITS.maxChars.step}
+                    value={sizing.maxChars}
+                    onChange={(e) => setSize("maxChars", Number(e.target.value))}
+                    className="w-full accent-signal"
+                  />
+                </div>
+              )}
+
+              {/* Toggles */}
+              <div className="mt-4 space-y-2">
+                <ToggleRow
+                  label="Uppercase everything"
+                  checked={sizing.uppercase}
+                  onChange={(v) => setSize("uppercase", v)}
+                />
+                <ToggleRow
+                  label="Punctuation-aware chunks"
+                  checked={sizing.punctuationAware}
+                  onChange={(v) => setSize("punctuationAware", v)}
+                />
+              </div>
+
+              {/* Reorganize */}
+              <button
+                type="button"
+                onClick={() => setReorgKey((k) => k + 1)}
+                className="mt-4 w-full rounded-full border border-line bg-ink px-5 py-3 text-sm font-medium text-bone transition-colors hover:border-mute"
+              >
+                Reorganize
+                {captionCount !== null && (
+                  <span className="ml-2 font-mono text-xs text-mute">
+                    {captionCount} captions
+                  </span>
+                )}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Download */}
+        <button
+          type="button"
+          onClick={() => onExport({ format, txtStyle, sizing })}
+          className="mt-4 w-full rounded-full bg-signal px-5 py-3 text-sm font-medium text-ink transition-transform hover:-translate-y-0.5"
+        >
+          Download {format.toUpperCase()}
+        </button>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-2 w-full rounded-full px-5 py-2 text-sm text-mute transition-colors hover:text-bone"
+        >
+          Cancel
+        </button>
+
+        {showChunking && (
+          <p className="mt-3 text-center text-[11px] text-mute">
+            SRT &amp; VTT export using the chunking above. Adjust to export
+            exactly what you need.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ToggleRow({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center justify-between">
+      <span className="text-sm text-bone">{label}</span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={`relative h-6 w-11 rounded-full transition-colors ${
+          checked ? "bg-signal" : "bg-line"
+        }`}
+      >
+        <span
+          className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+            checked ? "translate-x-[22px]" : "translate-x-0.5"
+          }`}
+        />
+      </button>
+    </label>
   );
 }
 

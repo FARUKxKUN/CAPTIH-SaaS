@@ -11,9 +11,9 @@ import {
   MAX_FILE_BYTES,
   type TranscribeJob,
 } from "@/lib/transcribe";
-import { saveJob } from "@/lib/jobStorage";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { track } from "@/lib/analytics";
 
 type UploadState =
   | { kind: "idle" }
@@ -63,6 +63,11 @@ export default function TranscribePage() {
     const { file, durationSec } = state;
 
     setState({ kind: "uploading", file, durationSec, pct: 0 });
+    track("transcribe_started", {
+      duration_sec: Math.round(durationSec),
+      file_type: file.type || "unknown",
+      size_bytes: file.size,
+    });
 
     try {
       const job = await uploadWithProgress({
@@ -76,11 +81,22 @@ export default function TranscribePage() {
           setState({ kind: "processing", file, durationSec, pct }),
       });
 
-      saveJob(job);
+      track("transcribe_completed", {
+        job_id: job.id,
+        duration_sec: Math.round(durationSec),
+        segments: job.segments.length,
+      });
+      // Job is already persisted to Supabase by /api/transcribe.
       router.push(`/result/${job.id}`);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Upload failed. Please try again.";
+      // Distinguish out-of-credits from generic failures for the funnel.
+      if (/out of minutes|insufficient/i.test(message)) {
+        track("out_of_credits", { duration_sec: Math.round(durationSec) });
+      } else {
+        track("transcribe_failed", { reason: message });
+      }
       setState({ kind: "error", message });
     }
   }, [state, router]);
@@ -338,7 +354,7 @@ function ProgressCard({
       <p className="mt-6 text-xs text-mute">
         {phase === "uploading"
           ? "Sending your file. Don't close this tab."
-          : "FARUKxAUTO is listening… ~3 minutes per audio hour."}
+          : "CAPTIH is listening… ~3 minutes per audio hour."}
       </p>
     </div>
   );

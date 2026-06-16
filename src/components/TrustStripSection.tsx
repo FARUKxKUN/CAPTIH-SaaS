@@ -32,7 +32,7 @@ const ITEMS: ReadonlyArray<TrustItem> = [
   {
     value: "~3 min",
     label: "per audio hour",
-    hint: "FARUKxAUTO turnaround",
+    hint: "CAPTIH turnaround",
   },
   {
     value: "0",

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, type ChangeEvent } from "react";
 import { COPY } from "@/lib/copy";
 import { RevealText } from "./motion/RevealText";
+import { BuyPackButton } from "./BuyPackButton";
 
 export function PricingSection() {
   return (
@@ -128,16 +129,7 @@ function PackCard({ pack }: { pack: Pack }) {
 
       <div className="mt-6 flex-1" />
 
-      <Link
-        href={`/transcribe?pack=${pack.id}`}
-        className={`block rounded-full px-4 py-2.5 text-center text-sm font-medium transition-all duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5 ${
-          highlight
-            ? "bg-signal text-ink hover:bg-signal/90"
-            : "border border-line bg-ink text-bone hover:border-mute"
-        }`}
-      >
-        {cta}
-      </Link>
+      <BuyPackButton packId={pack.id} label={cta} highlight={highlight} />
     </div>
   );
 }

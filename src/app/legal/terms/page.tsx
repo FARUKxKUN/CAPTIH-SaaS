@@ -142,8 +142,8 @@ export default function TermsPage() {
 
       <Section title="7. Accuracy disclaimer">
         <p className="text-mute">
-          FARUKxAUTO is the best Tunisian dialect transcription model we know
-          of, but it is not 100% accurate. Use our inline editor to fix any
+          The CAPTIH engine is the best Tunisian dialect transcription model we
+          know of, but it is not 100% accurate. Use our inline editor to fix any
           errors before you publish or rely on the transcript. We are not
           liable for decisions you make based on automatically-generated
           transcripts.

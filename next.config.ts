@@ -22,19 +22,47 @@ const SECURITY_HEADERS = [
 // hydration JSON need 'unsafe-inline' for styles + scripts until we wire a
 // per-request nonce via middleware.
 const isDev = process.env.NODE_ENV !== "production";
+
+// Allow the app to talk to its Supabase project (REST + Auth over https,
+// Realtime over wss). Derived from the public URL so it follows the env.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseConnectSrc = supabaseUrl
+  ? ` ${supabaseUrl} ${supabaseUrl.replace(/^https:/, "wss:")}`
+  : "";
+
+// Clerk auth: clerk-js calls its Frontend API at <instance>.clerk.accounts.dev
+// and loads avatars from img.clerk.com. Allow the whole clerk.accounts.dev
+// space (the instance subdomain varies) plus *.clerk.com.
+const clerkConnectSrc =
+  " https://*.clerk.accounts.dev https://*.clerk.com https://clerk.com";
+
+// PostHog analytics: ingest events + session replay assets (EU region).
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+const posthogConnectSrc = posthogHost
+  ? ` ${posthogHost} https://eu-assets.i.posthog.com`
+  : "";
+
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "img-src 'self' data: blob:",
+  "img-src 'self' data: blob: https://img.clerk.com",
   "media-src 'self' blob:",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ""}`,
+  // Clerk loads Cloudflare Turnstile (bot protection) from challenges.cloudflare.com.
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
   "worker-src 'self' blob:",
-  "connect-src 'self'" + (isDev ? " ws: http://localhost:* http://127.0.0.1:*" : ""),
+  "connect-src 'self'" +
+    supabaseConnectSrc +
+    clerkConnectSrc +
+    posthogConnectSrc +
+    " https://challenges.cloudflare.com" +
+    (isDev ? " ws: http://localhost:* http://127.0.0.1:*" : ""),
+  // Clerk renders some flows (verification, Turnstile widget) in iframes.
+  "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.com https://challenges.cloudflare.com",
   "upgrade-insecure-requests",
 ].join("; ");
 

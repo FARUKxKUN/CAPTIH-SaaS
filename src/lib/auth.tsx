@@ -1,38 +1,22 @@
 "use client";
 
+import { type ReactNode } from "react";
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
-import {
-  getMockUser,
-  onMockAuthChange,
-  signOutMock,
-  type MockUser,
-} from "./mock-auth";
+  useUser,
+  useClerk,
+  useAuth as useClerkAuth,
+} from "@clerk/nextjs";
 
-/**
- * Mock-only auth for the v1 demo.
- *
- * Clerk was removed in favour of a localStorage-backed mock flow so the entire
- * UX (sign-up → signed-in → dashboard → sign-out) works end-to-end with zero
- * external dependencies. When the backend partner wires real auth, they swap
- * MockAuthProvider for the real bridge — the `useAuth()` shape stays identical.
- */
-
-// Compatibility flag — kept for components that still gate on it.
-// Always false now: there is no real auth backend wired.
-export const IS_CLERK_CONFIGURED = false;
+// Clerk is the auth provider now.
+export const IS_CLERK_CONFIGURED = true;
 
 // ────────────────────────────────────────────────────────────────────────────
-// Auth context
+// Public auth API — kept stable so existing components don't change.
+// Re-implemented on top of Clerk (was Supabase).
 // ────────────────────────────────────────────────────────────────────────────
 
 export type SafeUser = {
+  readonly id?: string;
   readonly firstName?: string | null;
   readonly fullName?: string | null;
   readonly email?: string | null;
@@ -47,63 +31,48 @@ export type AuthState = {
   readonly signOut: () => void;
 };
 
-const DEFAULT_STATE: AuthState = {
-  isLoaded: true,
-  isSignedIn: false,
-  user: null,
-  isClerkConfigured: false,
-  signOut: () => {},
-};
-
-const AuthContext = createContext<AuthState>(DEFAULT_STATE);
-
+/**
+ * Bridge hook — maps Clerk's user/session into the app's stable AuthState.
+ */
 export function useAuth(): AuthState {
-  return useContext(AuthContext);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+
+  return {
+    isLoaded,
+    isSignedIn: !!isSignedIn,
+    isClerkConfigured: true,
+    signOut: () => {
+      void signOut();
+    },
+    user: user
+      ? {
+          id: user.id,
+          firstName: user.firstName ?? user.username ?? null,
+          fullName: user.fullName ?? null,
+          email: user.primaryEmailAddress?.emailAddress ?? null,
+          imageUrl: user.imageUrl ?? null,
+        }
+      : null,
+  };
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// Provider — localStorage-backed
-// ────────────────────────────────────────────────────────────────────────────
-
-export function MockAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<MockUser | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    setUser(getMockUser());
-    setIsLoaded(true);
-    return onMockAuthChange(() => setUser(getMockUser()));
-  }, []);
-
-  const value = useMemo<AuthState>(
-    () => ({
-      isLoaded,
-      isSignedIn: !!user,
-      isClerkConfigured: false,
-      signOut: () => signOutMock(),
-      user: user
-        ? {
-            firstName: user.firstName,
-            fullName: user.fullName,
-            email: user.email,
-            imageUrl: user.imageUrl,
-          }
-        : null,
-    }),
-    [isLoaded, user]
-  );
-
-  return (
-    <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-  );
+/**
+ * AuthBridge — no longer holds state itself (Clerk's <ClerkProvider> does).
+ * Kept as a passthrough so layout.tsx's structure is unchanged. Aliases below
+ * preserve old import sites.
+ */
+export function AuthBridge({ children }: { children: ReactNode }) {
+  return <>{children}</>;
 }
 
-// Aliases kept for previous import sites.
-export const NoClerkAuthProvider = MockAuthProvider;
-export const ClerkAuthBridge = MockAuthProvider;
+export const SupabaseAuthProvider = AuthBridge;
+export const MockAuthProvider = AuthBridge;
+export const NoClerkAuthProvider = AuthBridge;
+export const ClerkAuthBridge = AuthBridge;
 
 // ────────────────────────────────────────────────────────────────────────────
-// Declarative gate
+// Declarative gate — unchanged API.
 // ────────────────────────────────────────────────────────────────────────────
 
 export function AuthGate({
@@ -113,7 +82,7 @@ export function AuthGate({
   when: "signed-in" | "signed-out";
   children: ReactNode;
 }) {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useClerkAuth();
   if (!isLoaded) return null;
   if (when === "signed-in" && !isSignedIn) return null;
   if (when === "signed-out" && isSignedIn) return null;

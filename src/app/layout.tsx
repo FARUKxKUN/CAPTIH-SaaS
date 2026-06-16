@@ -5,10 +5,12 @@ import {
   JetBrains_Mono,
   IBM_Plex_Sans_Arabic,
 } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import { COPY } from "@/lib/copy";
-import { MockAuthProvider } from "@/lib/auth";
+import { AuthBridge } from "@/lib/auth";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { ThemeProvider, NoFlashThemeScript } from "@/components/ThemeProvider";
+import { PostHogProvider } from "@/components/PostHogProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -66,11 +68,27 @@ export default function RootLayout({
         <NoFlashThemeScript />
       </head>
       <body className="min-h-screen bg-ink text-bone antialiased">
-        <ThemeProvider>
-          <MockAuthProvider>
-            <SmoothScrollProvider>{children}</SmoothScrollProvider>
-          </MockAuthProvider>
-        </ThemeProvider>
+        <ClerkProvider
+          appearance={{ variables: { colorPrimary: "#FF5C2B" } }}
+          // Optional local-dev override: on machines that can't reach Clerk's
+          // CDN (Secure DNS / proxy / ad-blocker), set NEXT_PUBLIC_USE_LOCAL_CLERK=1
+          // and vendor the bundles into public/clerk-cdn/ (gitignored). Everyone
+          // else (Faruk, production) uses Clerk's default CDN automatically.
+          {...(process.env.NEXT_PUBLIC_USE_LOCAL_CLERK === "1"
+            ? ({
+                __internal_clerkJSUrl: "/clerk-cdn/clerk.browser.js",
+                __internal_clerkUIUrl: "/clerk-cdn/ui.browser.js",
+              } as Record<string, string>)
+            : {})}
+        >
+          <ThemeProvider>
+            <AuthBridge>
+              <PostHogProvider>
+                <SmoothScrollProvider>{children}</SmoothScrollProvider>
+              </PostHogProvider>
+            </AuthBridge>
+          </ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

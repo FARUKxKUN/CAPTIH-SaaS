@@ -27,7 +27,7 @@ export const COPY = {
       {
         n: "02",
         title: "We listen in Tunisian",
-        body: "FARUKxAUTO transcribes your audio with native Tunisian darija understanding. ~3 minutes per audio hour.",
+        body: "The CAPTIH engine transcribes your audio with native Tunisian darija understanding. ~3 minutes per audio hour.",
         visual: "listen",
       },
       {
@@ -191,7 +191,7 @@ export const COPY = {
       { name: "Yassine", href: null as string | null },
     ],
     poweredBy: "powered by",
-    modelName: "FARUKxAUTO",
+    modelName: "the CAPTIH engine",
     modelHref: "https://huggingface.co/FARUKxAUTO",
     rights: "Made in Tunis.",
     legal: [

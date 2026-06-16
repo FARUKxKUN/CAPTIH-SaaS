@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { type TranscribeJob } from "@/lib/transcribe";
 import { listJobs, deleteJob } from "@/lib/jobStorage";
-import { getCreditsRemaining } from "@/lib/credits";
 import {
   computeStats,
   dailyUsage,
@@ -38,6 +37,15 @@ const PERIOD_OPTIONS: ReadonlyArray<{ label: string; value: Period }> = [
 const TOTAL_TRIAL_MINUTES = 3;
 
 export default function DashboardPage() {
+  // useSearchParams() requires a Suspense boundary for prerendering (Next 16).
+  return (
+    <Suspense fallback={null}>
+      <DashboardInner />
+    </Suspense>
+  );
+}
+
+function DashboardInner() {
   const searchParams = useSearchParams();
   const justWelcomed = searchParams.get("welcome") === "true";
 
@@ -51,8 +59,21 @@ export default function DashboardPage() {
   const [showWelcome, setShowWelcome] = useState<boolean>(justWelcomed);
 
   useEffect(() => {
-    setJobs(listJobs());
-    setCredits(getCreditsRemaining());
+    let cancelled = false;
+    (async () => {
+      const [jobsList, creditsRes] = await Promise.all([
+        listJobs(),
+        fetch("/api/credits", { credentials: "include" })
+          .then((r) => (r.ok ? r.json() : { balance: 0 }))
+          .catch(() => ({ balance: 0 })),
+      ]);
+      if (cancelled) return;
+      setJobs(jobsList);
+      setCredits(creditsRes.balance ?? 0);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -81,9 +102,9 @@ export default function DashboardPage() {
   const files7 = useMemo(() => (jobs ? filesPerDay(jobs, 7) : []), [jobs]);
   const goals = useMemo(() => (jobs ? monthlyGoals(jobs) : []), [jobs]);
 
-  const handleDelete = (id: string) => {
-    deleteJob(id);
-    setJobs(listJobs());
+  const handleDelete = async (id: string) => {
+    await deleteJob(id);
+    setJobs(await listJobs());
   };
 
   const isLoading = jobs === null;

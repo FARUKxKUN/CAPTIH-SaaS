@@ -48,3 +48,8 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# Vendored Clerk JS/UI bundles — local-dev workaround for a flaky network on
+# one machine. NOT for the shared repo / production (prod uses Clerk's CDN or a
+# CNAME proxy). Kept local only.
+/public/clerk-cdn/

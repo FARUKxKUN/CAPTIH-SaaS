@@ -151,8 +151,8 @@ export default function PrivacyPage() {
             file storage (deleted within 24 hours)
           </li>
           <li>
-            <span className="text-bone">Modal</span> — runs FARUKxAUTO, our
-            Tunisian dialect transcription model
+            <span className="text-bone">Modal</span> — runs the CAPTIH engine,
+            our Tunisian dialect transcription model
           </li>
           <li>
             <span className="text-bone">Dhmad.tn</span> — payment processing

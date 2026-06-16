@@ -41,10 +41,17 @@ function periodCutoff(period: Period): number {
   return 0;
 }
 
+// Only completed jobs count toward stats — failed/refunded jobs never used
+// the service successfully, so they must not inflate minutes/files/time-saved.
+function completedOnly(jobs: readonly TranscribeJob[]): TranscribeJob[] {
+  return jobs.filter((j) => j.status === "done");
+}
+
 function filterByPeriod(jobs: readonly TranscribeJob[], period: Period): TranscribeJob[] {
-  if (period === "all") return [...jobs];
+  const done = completedOnly(jobs);
+  if (period === "all") return done;
   const cutoff = periodCutoff(period);
-  return jobs.filter((j) => new Date(j.createdAt).getTime() >= cutoff);
+  return done.filter((j) => new Date(j.createdAt).getTime() >= cutoff);
 }
 
 function previousWindow(jobs: readonly TranscribeJob[], period: Period): TranscribeJob[] {
@@ -52,7 +59,7 @@ function previousWindow(jobs: readonly TranscribeJob[], period: Period): Transcr
   const span = period === "week" ? 7 * DAY_MS : 30 * DAY_MS;
   const end = Date.now() - span;
   const start = end - span;
-  return jobs.filter((j) => {
+  return completedOnly(jobs).filter((j) => {
     const t = new Date(j.createdAt).getTime();
     return t >= start && t < end;
   });
@@ -132,7 +139,7 @@ export function dailyUsage(
     buckets.set(isoDate(d), { minutes: 0, files: 0 });
   }
 
-  for (const job of jobs) {
+  for (const job of completedOnly(jobs)) {
     const key = isoDate(new Date(job.createdAt));
     const slot = buckets.get(key);
     if (!slot) continue; // outside window
@@ -162,7 +169,7 @@ function isVideo(filename: string): boolean {
 export function formatBreakdown(jobs: readonly TranscribeJob[]): FormatBreakdown {
   let video = 0;
   let audio = 0;
-  for (const job of jobs) {
+  for (const job of completedOnly(jobs)) {
     if (isVideo(job.filename)) video++;
     else audio++;
   }
@@ -200,7 +207,7 @@ export type GoalProgress = {
 
 export function monthlyGoals(jobs: readonly TranscribeJob[]): GoalProgress[] {
   const monthAgo = Date.now() - 30 * DAY_MS;
-  const recent = jobs.filter(
+  const recent = completedOnly(jobs).filter(
     (j) => new Date(j.createdAt).getTime() >= monthAgo
   );
 

@@ -36,14 +36,20 @@ export default function EditorPage({ params }: { params: Promise<Params> }) {
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load job from storage once on mount
+  // Load job from the API once on mount
   useEffect(() => {
-    const stored = getJob(id);
-    setJob(stored);
-    if (stored) {
-      setSegments(stored.segments);
-      setLastSavedAt(Date.now());
-    }
+    let cancelled = false;
+    getJob(id).then((stored) => {
+      if (cancelled) return;
+      setJob(stored);
+      if (stored) {
+        setSegments(stored.segments);
+        setLastSavedAt(Date.now());
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   // Debounced auto-save — only after user dirties the doc
@@ -51,9 +57,9 @@ export default function EditorPage({ params }: { params: Promise<Params> }) {
     (next: readonly SrtSegment[]) => {
       setSaveState("dirty");
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      saveTimer.current = setTimeout(() => {
+      saveTimer.current = setTimeout(async () => {
         setSaveState("saving");
-        const updated = updateJobSegments(id, next);
+        const updated = await updateJobSegments(id, [...next]);
         if (updated) {
           setJob(updated);
           setSaveState("saved");

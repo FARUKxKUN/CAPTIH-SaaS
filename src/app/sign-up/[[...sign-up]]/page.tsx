@@ -1,14 +1,11 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { SignUp } from "@clerk/nextjs";
 import { SiteHeader } from "@/components/SiteHeader";
-import { AuthForm } from "@/components/auth/AuthForm";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { clerkAppearance } from "@/lib/clerk-appearance";
 
 export default function SignUpPage() {
-  const params = useSearchParams();
-  const redirectUrl = params.get("redirect_url") ?? "/dashboard";
-
   return (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
@@ -30,7 +27,11 @@ export default function SignUpPage() {
           </>
         }
       >
-        <AuthForm initialMode="sign-up" redirectUrl={redirectUrl} />
+        <SignUp
+          appearance={clerkAppearance}
+          signInUrl="/sign-in"
+          forceRedirectUrl="/dashboard"
+        />
       </AuthLayout>
     </div>
   );
