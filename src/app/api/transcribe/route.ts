@@ -274,6 +274,31 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // Billing integrity: the client-declared durationSec is advisory and
+    // forgeable (a 30-min file can claim 1s). Reconcile against the REAL
+    // transcribed length (last word timestamp) and collect any shortfall so
+    // under-reporting can't buy a long transcription for a short charge.
+    const actualSec = words.reduce((max, w) => Math.max(max, w.endMs), 0) / 1000;
+    const actualMinutes = Math.min(Math.ceil(actualSec / 60), 30);
+    if (actualMinutes > minutesCharged) {
+      const extra = actualMinutes - minutesCharged;
+      const collected = await deductUserMinutes(userId, extra);
+      if (collected) {
+        await createTransaction(userId, "credit_deduction", -extra, id, {
+          reason: "duration_reconciliation",
+          client_sec: durationSec,
+          actual_sec: Math.round(actualSec),
+        });
+        minutesCharged = actualMinutes;
+      } else {
+        // Couldn't collect the difference (insufficient balance). Deliver this
+        // one (already transcribed) but log the shortfall for follow-up.
+        console.warn(
+          `[transcribe] under-collected ${extra}m on job ${id}: client ${durationSec}s vs actual ${Math.round(actualSec)}s`
+        );
+      }
+    }
+
     // Clean the WORDS with Gemini (always on). Gemini sees the full ordered
     // word list as context and returns corrected words 1:1, preserving each
     // word's timestamp. All export chunking then re-groups these CLEANED words
