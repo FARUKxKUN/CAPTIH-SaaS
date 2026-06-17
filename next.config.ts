@@ -52,8 +52,10 @@ const csp = [
   "media-src 'self' blob:",
   "font-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
-  // Clerk loads Cloudflare Turnstile (bot protection) from challenges.cloudflare.com.
-  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com${isDev ? " 'unsafe-eval'" : ""}`,
+  // Clerk loads its clerk-js bundle from the Frontend API (<instance>.clerk.accounts.dev
+  // on dev, clerk.<domain> / *.clerk.com on prod) and Turnstile from challenges.cloudflare.com.
+  // Without the Clerk hosts here the browser blocks clerk-js and no auth UI renders.
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://challenges.cloudflare.com https://*.clerk.accounts.dev https://*.clerk.com${isDev ? " 'unsafe-eval'" : ""}`,
   "worker-src 'self' blob:",
   "connect-src 'self'" +
     supabaseConnectSrc +
