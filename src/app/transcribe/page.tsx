@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -367,6 +368,10 @@ function ErrorCard({
   message: string;
   onRetry: () => void;
 }) {
+  // Auth errors ("Sign in to transcribe") need a real way in, not a retry.
+  const authRequired = /sign\s?-?in|log\s?in|unauthor|not authenticated|not signed in/i.test(
+    message
+  );
   return (
     <div className="rounded-3xl border border-line bg-surface/60 p-8 text-center backdrop-blur">
       <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-signal/15">
@@ -383,15 +388,39 @@ function ErrorCard({
           <path d="M12 9v3.75M12 16.5h.008v.008H12v-.008zM12 3a9 9 0 100 18 9 9 0 000-18z" />
         </svg>
       </div>
-      <p className="font-display text-lg font-medium text-bone">Hmm.</p>
-      <p className="mt-2 text-sm text-mute">{message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-6 inline-flex items-center justify-center rounded-full border border-line bg-ink px-6 py-3 text-sm font-medium text-bone hover:border-mute"
-      >
-        Try again
-      </button>
+      <p className="font-display text-lg font-medium text-bone">
+        {authRequired ? "Sign in to Captih it." : "Hmm."}
+      </p>
+      <p className="mt-2 text-sm text-mute">
+        {authRequired
+          ? "Create a free account to transcribe - your first 3 minutes are on us."
+          : message}
+      </p>
+
+      {authRequired ? (
+        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href="/sign-up?redirect_url=/transcribe"
+            className="inline-flex w-full items-center justify-center rounded-full bg-signal px-6 py-3 text-sm font-medium text-ink transition-transform duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5 sm:w-auto"
+          >
+            Sign up free →
+          </Link>
+          <Link
+            href="/sign-in?redirect_url=/transcribe"
+            className="inline-flex w-full items-center justify-center rounded-full border border-line bg-ink px-6 py-3 text-sm font-medium text-bone hover:border-mute sm:w-auto"
+          >
+            Sign in
+          </Link>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-6 inline-flex items-center justify-center rounded-full border border-line bg-ink px-6 py-3 text-sm font-medium text-bone hover:border-mute"
+        >
+          Try again
+        </button>
+      )}
     </div>
   );
 }

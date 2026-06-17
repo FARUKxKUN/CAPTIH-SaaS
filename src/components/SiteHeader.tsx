@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { AuthGate } from "@/lib/auth";
+import { AuthGate, useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { setupGsap, gsap, prefersReducedMotion } from "@/lib/motion";
 import { ThemeToggle } from "./ThemeToggle";
@@ -20,6 +20,8 @@ import { UserMenu } from "./UserMenu";
  */
 export function SiteHeader() {
   const logoRef = useRef<HTMLAnchorElement | null>(null);
+  // Default to the signed-out view while Clerk loads, so the auth CTA is never blank.
+  const { isSignedIn } = useAuth();
 
   useEffect(() => {
     const logoEl = logoRef.current;
@@ -127,28 +129,34 @@ export function SiteHeader() {
           {/* Theme toggle — always visible */}
           <ThemeToggle />
 
-          {/* Signed out: sign-in text link */}
-          <AuthGate when="signed-out">
-            <Link
-              href="/sign-in"
-              className="hidden text-sm text-mute hover:text-bone sm:inline-block"
-            >
-              Sign in
-            </Link>
-          </AuthGate>
-
-          {/* Signed in: account dropdown */}
-          <AuthGate when="signed-in">
-            <UserMenu />
-          </AuthGate>
-
-          {/* PRIMARY CTA — always visible */}
-          <Link
-            href="/transcribe"
-            className="rounded-full bg-signal px-4 py-2 text-sm font-medium text-ink transition-transform duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5"
-          >
-            {COPY.nav.cta}
-          </Link>
+          {isSignedIn ? (
+            <>
+              {/* Signed in: account dropdown + transcribe CTA */}
+              <UserMenu />
+              <Link
+                href="/transcribe"
+                className="rounded-full bg-signal px-4 py-2 text-sm font-medium text-ink transition-transform duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5"
+              >
+                {COPY.nav.cta}
+              </Link>
+            </>
+          ) : (
+            <>
+              {/* Signed out: sign-in link + sign-up CTA (this is the real entry point) */}
+              <Link
+                href="/sign-in"
+                className="text-sm text-mute transition-colors hover:text-bone"
+              >
+                Sign in
+              </Link>
+              <Link
+                href="/sign-up"
+                className="rounded-full bg-signal px-4 py-2 text-sm font-medium text-ink transition-transform duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5"
+              >
+                Sign up free →
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
