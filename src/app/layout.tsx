@@ -7,6 +7,7 @@ import {
 } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { COPY } from "@/lib/copy";
+import { clerkLocalization } from "@/lib/clerk-appearance";
 import { AuthBridge } from "@/lib/auth";
 import { SmoothScrollProvider } from "@/components/motion/SmoothScrollProvider";
 import { ThemeProvider, NoFlashThemeScript } from "@/components/ThemeProvider";
@@ -70,6 +71,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-ink text-bone antialiased">
         <ClerkProvider
           appearance={{ variables: { colorPrimary: "#FF5C2B" } }}
+          localization={clerkLocalization}
           // Optional local-dev override: on machines that can't reach Clerk's
           // CDN (Secure DNS / proxy / ad-blocker), set NEXT_PUBLIC_USE_LOCAL_CLERK=1
           // and vendor the bundles into public/clerk-cdn/ (gitignored). Everyone

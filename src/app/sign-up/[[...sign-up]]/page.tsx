@@ -3,6 +3,8 @@
 import { SignUp } from "@clerk/nextjs";
 import { SiteHeader } from "@/components/SiteHeader";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { AuthTabs } from "@/components/auth/AuthTabs";
+import { AuthFooter } from "@/components/auth/AuthFooter";
 import { clerkAppearance } from "@/lib/clerk-appearance";
 
 export default function SignUpPage() {
@@ -27,11 +29,13 @@ export default function SignUpPage() {
           </>
         }
       >
+        <AuthTabs active="sign-up" />
         <SignUp
           appearance={clerkAppearance}
           signInUrl="/sign-in"
           forceRedirectUrl="/dashboard"
         />
+        <AuthFooter tagline="Join Tunisian creators on Captih. Trained on 100+ hrs of real darija." />
       </AuthLayout>
     </div>
   );
