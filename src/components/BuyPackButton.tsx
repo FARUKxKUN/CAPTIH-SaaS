@@ -31,7 +31,7 @@ export function BuyPackButton({
   const handleClick = async () => {
     if (!isLoaded) return;
     if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=/%23pricing`);
+      router.push(`/sign-up?redirect_url=/pricing`);
       return;
     }
     setBusy(true);

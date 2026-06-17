@@ -62,9 +62,12 @@ export type CreateEscrowInput = {
   metadata?: Record<string, unknown>;
 };
 
+type EscrowEntity = { _id?: string; id?: string; status?: string };
 type EscrowResponse = {
-  escrow?: { id: string; status: string };
-  data?: { id: string; status: string };
+  escrow?: EscrowEntity;
+  data?: EscrowEntity;
+  trackingId?: string;
+  _id?: string;
   id?: string;
 };
 
@@ -85,8 +88,16 @@ export async function createInstantEscrow(
   });
   if (!result.ok) return result;
 
+  // Dhmad returns the escrow under `escrow` with a Mongo-style `_id`; `trackingId`
+  // mirrors it. Check every shape so we never miss the id.
   const escrowId =
-    result.data.escrow?.id ?? result.data.data?.id ?? result.data.id;
+    result.data.escrow?._id ??
+    result.data.escrow?.id ??
+    result.data.data?._id ??
+    result.data.data?.id ??
+    result.data.trackingId ??
+    result.data._id ??
+    result.data.id;
   if (!escrowId) {
     return { ok: false, error: "Dhmad: no escrow id in response" };
   }
@@ -97,11 +108,13 @@ type SessionResponse = { url?: string; data?: { url?: string } };
 
 /**
  * Create an accept_pay checkout session and return the redirect URL.
- * `successUrl`/`cancelUrl` send the user back to our app after Dhmad.
+ * Dhmad takes a single `redirectUrl` (must be in the dashboard allowlist) and
+ * `targetUserEmail` (the buyer paying). On return it appends
+ * `?session_id=...&status=completed|cancelled|expired`.
  */
 export async function createCheckoutSession(
   escrowId: string,
-  opts: { successUrl: string; cancelUrl: string }
+  opts: { redirectUrl: string; targetUserEmail: string }
 ): Promise<DhmadResult<{ url: string }>> {
   const result = await dhmadFetch<SessionResponse>(
     `/escrows/${escrowId}/sessions`,
@@ -109,8 +122,8 @@ export async function createCheckoutSession(
       method: "POST",
       body: JSON.stringify({
         action: "accept_pay",
-        successUrl: opts.successUrl,
-        cancelUrl: opts.cancelUrl,
+        targetUserEmail: opts.targetUserEmail,
+        redirectUrl: opts.redirectUrl,
       }),
     }
   );

@@ -84,11 +84,13 @@ export async function POST(request: Request): Promise<Response> {
       .update({ payment_id: escrow.data.escrowId })
       .eq("id", txn.id);
 
-    // Create the checkout session and return the redirect URL.
+    // Create the checkout session and return the redirect URL. Dhmad appends
+    // ?session_id=...&status=... to redirectUrl, so we send the clean /dashboard
+    // (which is in the dashboard's allowed redirect URLs).
     const origin = new URL(request.url).origin;
     const session = await createCheckoutSession(escrow.data.escrowId, {
-      successUrl: `${origin}/dashboard?purchase=success`,
-      cancelUrl: `${origin}/dashboard?purchase=cancelled`,
+      redirectUrl: `${origin}/dashboard`,
+      targetUserEmail: buyerEmail,
     });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: 502 });

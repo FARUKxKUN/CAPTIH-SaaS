@@ -180,7 +180,7 @@ export const COPY = {
       { label: "How it works", href: "#how" },
       { label: "Compare", href: "#vs" },
       { label: "Examples", href: "/examples" },
-      { label: "Pricing", href: "#pricing" },
+      { label: "Pricing", href: "/pricing" },
     ],
     cta: "Captiiiih →",
   },

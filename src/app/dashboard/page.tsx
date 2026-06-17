@@ -212,7 +212,7 @@ function TopUpBanner({ credits }: { credits: number }) {
         </div>
       </div>
       <Link
-        href="/#pricing"
+        href="/pricing"
         className="rounded-full bg-signal px-5 py-2 text-xs font-medium text-ink transition-transform duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5"
       >
         See packs →
@@ -253,7 +253,7 @@ function DashboardHeader({
       <div className="flex flex-shrink-0 flex-col gap-3 sm:flex-row sm:items-center">
         <PeriodSelector period={period} onChange={onPeriodChange} />
         <Link
-          href="/#pricing"
+          href="/pricing"
           className="rounded-full border border-line bg-ink px-5 py-2.5 text-center text-sm font-medium text-bone hover:border-mute"
         >
           Top up

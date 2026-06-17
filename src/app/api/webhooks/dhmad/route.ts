@@ -26,7 +26,8 @@ type EscrowWebhook = {
   timestamp: string;
   data: {
     escrow?: {
-      id: string;
+      id?: string;
+      _id?: string;
       status: string;
       oldStatus?: string;
     };
@@ -90,20 +91,22 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const type = event.type || eventType;
     const escrow = event.data?.escrow;
+    // Dhmad uses `_id` on create; webhook may send `id` or `_id`. Accept both.
+    const escrowId = escrow?.id ?? escrow?._id;
 
     // Only act when an escrow becomes `paid`.
-    if (type === "escrow.status.updated" && escrow?.status === "paid") {
+    if (type === "escrow.status.updated" && escrow?.status === "paid" && escrowId) {
       // Find the pending transaction we created for this escrow.
       const { data: txn, error: txnErr } = await supabase
         .from("transactions")
         .select("id, user_id, status, metadata")
-        .eq("payment_id", escrow.id)
+        .eq("payment_id", escrowId)
         .maybeSingle();
       if (txnErr) throw txnErr;
 
       if (!txn) {
         // No matching transaction — log and 200 so Dhmad doesn't retry forever.
-        console.error("[dhmad-webhook] no transaction for escrow", escrow.id);
+        console.error("[dhmad-webhook] no transaction for escrow", escrowId);
         return NextResponse.json({ received: true, unmatched: true });
       }
 
@@ -144,7 +147,7 @@ export async function POST(request: Request): Promise<Response> {
         .eq("id", txn.id);
 
       // Deliver the escrow → instant mode auto-completes + releases funds.
-      const delivered = await deliverEscrow(escrow.id);
+      const delivered = await deliverEscrow(escrowId);
       if (!delivered.ok) {
         // Non-fatal: minutes are already credited. Log for manual follow-up.
         console.error("[dhmad-webhook] deliver failed:", delivered.error);

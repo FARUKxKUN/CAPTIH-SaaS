@@ -70,7 +70,7 @@ export function ExpiryBanner() {
         </div>
       </div>
       <Link
-        href="/#pricing"
+        href="/pricing"
         className={`rounded-full px-5 py-2 text-xs font-medium transition-transform duration-200 ease-[var(--ease-spring)] hover:-translate-y-0.5 ${cfg.cta}`}
       >
         {tier === "expired" ? "Buy another pack" : "Top up"} -&gt;
