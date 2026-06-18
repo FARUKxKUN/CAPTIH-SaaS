@@ -20,6 +20,7 @@ import {
   sniffMediaContainer,
   segmentsToTxt,
 } from "@/lib/transcribe";
+import { rateLimitByKey } from "@/lib/rate-limit-db";
 
 /**
  * Transcribe endpoint — Supabase-backed.
@@ -84,24 +85,6 @@ async function transcribeViaModal(file: File): Promise<SrtSegment[]> {
 // Defensive guards
 // ────────────────────────────────────────────────────────────────────────────
 
-const WINDOW_MS = 60_000;
-const MAX_REQ_PER_WINDOW = 5;
-const ipHits = new Map<string, { count: number; resetAt: number }>();
-
-function rateLimit(ip: string): { ok: boolean; retryAfter: number } {
-  const now = Date.now();
-  const slot = ipHits.get(ip);
-  if (!slot || slot.resetAt < now) {
-    ipHits.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return { ok: true, retryAfter: 0 };
-  }
-  if (slot.count >= MAX_REQ_PER_WINDOW) {
-    return { ok: false, retryAfter: Math.ceil((slot.resetAt - now) / 1000) };
-  }
-  slot.count += 1;
-  return { ok: true, retryAfter: 0 };
-}
-
 function getClientIp(req: Request): string {
   const xff = req.headers.get("x-forwarded-for");
   if (xff) return xff.split(",")[0]?.trim() || "unknown";
@@ -131,7 +114,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const ip = getClientIp(request);
-    const rl = rateLimit(ip);
+    const rl = await rateLimitByKey(`transcribe:${ip}`, { windowMs: 60_000, max: 5 });
     if (!rl.ok) {
       return NextResponse.json(
         { error: "Too many requests. Slow down." },

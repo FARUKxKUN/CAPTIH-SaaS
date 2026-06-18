@@ -3,6 +3,18 @@ import { getAuthUser, getSupabaseServerClient } from "@/lib/supabase-server";
 import { createInstantEscrow, createCheckoutSession } from "@/lib/dhmad";
 import { getPack } from "@/lib/packs";
 import { currentUser } from "@clerk/nextjs/server";
+import { rateLimitByKey } from "@/lib/rate-limit-db";
+
+function isSameOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  const host = req.headers.get("host");
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
 
 /**
  * POST /api/payments/create
@@ -14,9 +26,30 @@ import { currentUser } from "@clerk/nextjs/server";
  */
 export async function POST(request: Request): Promise<Response> {
   try {
+    if (!isSameOrigin(request)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Reject oversized bodies before parsing JSON.
+    const contentLength = Number(request.headers.get("content-length") ?? "");
+    if (Number.isFinite(contentLength) && contentLength > 1024) {
+      return NextResponse.json({ error: "Request too large" }, { status: 413 });
+    }
+
     const user = await getAuthUser(request);
     if (!user) {
       return NextResponse.json({ error: "Sign in to buy credits." }, { status: 401 });
+    }
+
+    const rl = await rateLimitByKey(`payment:${user.id}`, {
+      windowMs: 15 * 60_000,
+      max: 5,
+    });
+    if (!rl.ok) {
+      return NextResponse.json(
+        { error: "Too many payment requests. Try again later." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+      );
     }
 
     const body = (await request.json()) as { pack_type?: string };

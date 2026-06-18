@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import {
   Inter,
   Inter_Tight,
@@ -54,11 +55,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="en"
@@ -66,10 +69,11 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <NoFlashThemeScript />
+        <NoFlashThemeScript nonce={nonce} />
       </head>
       <body className="min-h-screen bg-ink text-bone antialiased">
         <ClerkProvider
+          nonce={nonce}
           appearance={{ variables: { colorPrimary: "#FF5C2B" } }}
           localization={clerkLocalization}
           // Optional local-dev override: on machines that can't reach Clerk's

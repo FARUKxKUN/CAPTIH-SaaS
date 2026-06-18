@@ -74,7 +74,7 @@ export function useTheme(): ThemeContextValue {
  * preventing the "flash of wrong theme" on first paint. Reads localStorage,
  * falls back to prefers-color-scheme, falls back to dark.
  */
-export function NoFlashThemeScript() {
+export function NoFlashThemeScript({ nonce }: { nonce?: string }) {
   const code = `
     (function() {
       try {
@@ -99,6 +99,7 @@ export function NoFlashThemeScript() {
   `;
   return (
     <script
+      nonce={nonce}
       dangerouslySetInnerHTML={{ __html: code }}
       suppressHydrationWarning
     />
