@@ -8,6 +8,15 @@ import { setupGsap, gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/moti
 // Header is fixed (~72px) — land the section just below it, not under it.
 const HASH_OFFSET = -88;
 
+// querySelector throws on a malformed selector; never let that break navigation.
+function safeSelect(selector: string): Element | null {
+  try {
+    return document.querySelector(selector);
+  } catch {
+    return null;
+  }
+}
+
 export function SmoothScrollProvider({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
   const pathname = usePathname();
@@ -15,7 +24,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
   // Scroll to a hash target via Lenis (or native when reduced-motion / no Lenis).
   const scrollToHash = (hash: string) => {
     if (!hash || hash === "#") return;
-    const el = document.querySelector(hash);
+    const el = safeSelect(hash);
     if (!el) return;
     const lenis = lenisRef.current;
     if (lenis) lenis.scrollTo(el as HTMLElement, { offset: HASH_OFFSET, duration: 1.1 });
@@ -52,7 +61,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
       if (!hash || hash === "#") return;
       // Only hijack when the target exists on the current page. Otherwise let
       // Next navigate — the pathname effect below scrolls once home renders.
-      if (!document.querySelector(hash)) return;
+      if (!safeSelect(hash)) return;
       e.preventDefault();
       history.pushState(null, "", hash);
       scrollToHash(hash);
@@ -78,7 +87,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     let timer = 0;
     let raf = 0;
     const tryScroll = () => {
-      if (document.querySelector(hash)) {
+      if (safeSelect(hash)) {
         scrollToHash(hash);
         return;
       }
