@@ -2,6 +2,14 @@
   "name": "captih",
   "version": "0.1.0",
   "private": true,
+  "description": "Subtitles and transcripts for Tunisian Arabic (Darija), powered by a fine-tuned Whisper model.",
+  "license": "UNLICENSED",
+  "author": "Faruk Battikh",
+  "contributors": [
+    "Faruk Battikh",
+    "Yassine Bouteraa"
+  ],
+  "homepage": "https://captih.vercel.app",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

@@ -1,6 +1,6 @@
 /**
  * Credit pack catalog — single source of truth for pricing.
- * Prices/minutes locked in CAPTIH-V1-SPEC.md. amount is in TND.
+ * The server always charges from this table, never from client input. amount is in TND.
  */
 export type PackType = "pack_10" | "pack_30" | "pack_60" | "pack_180";
 
