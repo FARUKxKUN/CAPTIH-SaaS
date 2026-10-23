@@ -101,7 +101,7 @@ export default async function OpenGraphImage() {
             fontSize: 24,
           }}
         >
-          <span>100+ hrs · real Tunisian audio</span>
+          <span>93 hrs · real Tunisian audio</span>
           <span>SRT · TXT · JSON</span>
           <span style={{ color: "#F4F1EA" }}>captih.com</span>
         </div>

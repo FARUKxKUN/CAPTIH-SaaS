@@ -25,7 +25,7 @@ type TrustItem = {
 
 const ITEMS: ReadonlyArray<TrustItem> = [
   {
-    value: "100+",
+    value: "93",
     label: "hours trained",
     hint: "Tunisian darija audio",
   },

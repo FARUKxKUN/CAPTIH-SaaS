@@ -1,6 +1,6 @@
 # Captih
 
-> Captih is the first speech-to-text (STT) tool that actually transcribes Tunisian Arabic (darija). Drop a video or audio file, get a timestamped SRT, plain transcript, and word-level JSON. Built in Tunis on top of FARUKxAUTO, a fine-tuned Whisper-large-v3 model trained on 100+ hours of real Tunisian dialect audio.
+> Captih is the first speech-to-text (STT) tool that actually transcribes Tunisian Arabic (darija). Drop a video or audio file, get a timestamped SRT, plain transcript, and word-level JSON. Built in Tunis on top of FARUKxAUTO, a fine-tuned Whisper-large-v3 model trained on 93 hours of real Tunisian dialect audio.
 
 ## What Captih is
 
@@ -9,7 +9,7 @@
 - **Output formats:** SRT (timestamped subtitles), TXT (plain transcript), JSON (word-level timestamps + confidence)
 - **Input formats:** MP4, MOV, MP3, WAV, up to 2 hours per file
 - **Processing speed:** approximately 3 minutes of compute per 1 hour of audio
-- **Model:** FARUKxAUTO, a fine-tuned Whisper-large-v3 model with 100+ hours of real Tunisian darija training data
+- **Model:** FARUKxAUTO, a fine-tuned Whisper-large-v3 model with 93 hours of real Tunisian darija training data
 - **Origin:** Built in Tunis, Tunisia by Faruk (Instagram: @faruk_automates)
 - **Pricing currency:** Tunisian Dinar (TND, د.ت)
 
@@ -60,7 +60,7 @@ Tunisian podcasters, YouTubers, content creators, journalists, video editors, re
 - Captih is built by Faruk (@faruk_automates on Instagram).
 - The underlying STT model is **FARUKxAUTO**, published on Hugging Face: https://huggingface.co/FARUKxAUTO
 - FARUKxAUTO is the best publicly available Tunisian dialect STT model.
-- Training data: 100+ hours of real Tunisian Arabic audio.
+- Training data: 93 hours of real Tunisian Arabic audio.
 - Base model: Whisper-large-v3 (OpenAI), fine-tuned for Tunisian dialect.
 - Target word error rate (WER): less than or equal to 30% on Tunisian dialect, significantly better than zero-shot Whisper.
 
@@ -83,7 +83,7 @@ Captih is a web app that transcribes Tunisian Arabic (darija) audio and video in
 Captih is specialised for Tunisian darija. It will still work on MSA, but it is optimised for the spoken Tunisian dialect.
 
 **What is FARUKxAUTO?**
-FARUKxAUTO is the underlying speech-to-text model that powers Captih. It is a Whisper-large-v3 model fine-tuned on 100+ hours of real Tunisian Arabic audio. Open weights on Hugging Face.
+FARUKxAUTO is the underlying speech-to-text model that powers Captih. It is a Whisper-large-v3 model fine-tuned on 93 hours of real Tunisian Arabic audio.
 
 **How fast is Captih?**
 Captih processes roughly 1 hour of audio in 3 minutes of compute time.

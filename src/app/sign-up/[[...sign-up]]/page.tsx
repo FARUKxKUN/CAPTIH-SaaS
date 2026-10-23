@@ -35,7 +35,7 @@ export default function SignUpPage() {
           signInUrl="/sign-in"
           forceRedirectUrl="/dashboard"
         />
-        <AuthFooter tagline="Join Tunisian creators on Captih. Trained on 100+ hrs of real darija." />
+        <AuthFooter tagline="Join Tunisian creators on Captih. Trained on 93 hrs of real darija." />
       </AuthLayout>
     </div>
   );

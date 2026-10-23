@@ -107,7 +107,7 @@ export function StructuredData() {
     name: "Captih",
     alternateName: "Captih STT",
     description:
-      "Captih is an AI-powered speech-to-text transcription tool specialised in Tunisian Arabic (darija). Upload video or audio, get a timestamped SRT, plain transcript, and word-level JSON. Powered by FARUKxAUTO, a fine-tuned Whisper-large-v3 model trained on 100+ hours of real Tunisian dialect audio.",
+      "Captih is an AI-powered speech-to-text transcription tool specialised in Tunisian Arabic (darija). Upload video or audio, get a timestamped SRT, plain transcript, and word-level JSON. Powered by FARUKxAUTO, a fine-tuned Whisper-large-v3 model trained on 93 hours of real Tunisian dialect audio.",
     url: base,
     applicationCategory: "MultimediaApplication",
     applicationSubCategory: "Transcription Software",

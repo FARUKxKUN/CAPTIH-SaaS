@@ -8,7 +8,7 @@ export const COPY = {
     badge: "00:00:12,400  →  00:00:14,820",
     badgeLabel: "Tunisian dialect, captured.",
     headline: ["The first subtitle tool that ", "actually speaks Tunisian"] as const,
-    sub: "Drop a video. Get a perfect SRT. Trained on 100+ hours of real Tunisian.",
+    sub: "Drop a video. Get a perfect SRT. Trained on 93 hours of real Tunisian.",
     bilingual: "شكون غيري لي بش يفهمك؟ Nobody else does.",
     ctaPrimary: "Captiiiih",
     ctaSecondary: "How it works",
@@ -60,7 +60,7 @@ export const COPY = {
     headline: "Nobody else was going to.",
     paragraphs: [
       "We're Faruk and Yassine. We built Captih together because we got tired of watching Otter, YouTube, and every other tool butcher our voices.",
-      "For months we collected 100+ hours of real Tunisian darija — interviews, voice notes, podcasts, street recordings. We fine-tuned Whisper-large-v3 on it. We failed twice before it actually started hearing us.",
+      "For months we collected 93 hours of real Tunisian darija — interviews, voice notes, podcasts, street recordings. We fine-tuned Whisper-large-v3 on it. We failed twice before it actually started hearing us.",
       "No one else built this because no one else cared enough to. Every other speech-to-text tool treats Tunisian like broken Arabic with a side of French. We treat it like what it is — our language.",
       "If you've ever spent a Saturday manually transcribing a 45-minute episode because the auto-captions were unusable, this is for you. We were you. We still are.",
     ],
@@ -204,7 +204,7 @@ export const COPY = {
     title: "Captih - Tunisian subtitles, captured.",
     titleTemplate: "%s · Captih",
     description:
-      "Captih is the first speech-to-text tool that actually transcribes Tunisian darija. Drop a video or audio file, get a timestamped SRT, plain transcript, and JSON in minutes. Trained on 100+ hours of real Tunisian dialect, built in Tunis.",
+      "Captih is the first speech-to-text tool that actually transcribes Tunisian darija. Drop a video or audio file, get a timestamped SRT, plain transcript, and JSON in minutes. Trained on 93 hours of real Tunisian dialect, built in Tunis.",
     keywords: [
       "Tunisian transcription",
       "darija subtitles",
