@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="https://captih.vercel.app"><img src="https://img.shields.io/badge/live-captih.vercel.app-e2643a?style=flat" alt="Live app" /></a>
+  <a href="https://github.com/FARUKxKUN/CAPTIH-SaaS/actions/workflows/ci.yml"><img src="https://github.com/FARUKxKUN/CAPTIH-SaaS/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat&logo=supabase&logoColor=white" alt="Supabase" />
