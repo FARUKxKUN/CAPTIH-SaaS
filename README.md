@@ -15,6 +15,14 @@
   <a href="#team">Team</a>
 </p>
 
+<p align="center">
+  <a href="https://captih.vercel.app"><img src="https://img.shields.io/badge/live-captih.vercel.app-e2643a?style=flat" alt="Live app" /></a>
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat&logo=nextdotjs&logoColor=white" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=flat&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/license-all_rights_reserved-555555?style=flat" alt="All rights reserved" />
+</p>
+
 ![captih landing page](docs/images/hero.png)
 
 ---
@@ -117,7 +125,7 @@ Apply the SQL files in [`supabase/migrations/`](supabase/migrations/) to a fresh
 
 captih is live and in early use. Current limits and the next steps:
 
-- **Files up to 30 minutes, processed synchronously.** Next: an async job queue with direct-to-storage uploads and chunked parallel inference, so hour-long podcasts finish in a few minutes.
+- **Files up to 30 minutes, processed synchronously.** Next: an async job queue with direct-to-storage uploads and chunked parallel inference, for long files such as full podcast episodes.
 - **Server-side duration probing** (ffprobe) before charging, instead of reconciling after transcription.
 - **Speaker labels and timestamp editing** in the editor.
 - **More dialects** (Algerian, Moroccan, Libyan) using the same fine-tuning approach.
@@ -128,11 +136,11 @@ captih was built by two engineering students at ISI Mahdia, Tunisia.
 
 | | Role | Main contributions |
 |---|---|---|
-| **Faruk Battikh** ([@FARUKxKUN](https://github.com/FARUKxKUN)) | Product, front end, ML | Product and brand design, the full front end (landing, 3D logo, motion, dashboard, editor, result page), the FARUKxAUTO fine-tune and its inference service, billing reconciliation, payment checkout fixes, security hardening |
-| **Yassine Bouteraa** | Back end | Backend architecture: Clerk authentication and user sync, the Supabase schema, RLS and SQL functions, the credit and job systems, the Modal transcription integration, the Dhmad payment flow and webhook, PostHog analytics, Gemini cleanup and caption formatting |
+| **Farouk Battikh** ([@FARUKxKUN](https://github.com/FARUKxKUN)) | Product, front end, ML | Product and brand design, the full front end (landing, 3D logo, motion, dashboard, editor, result page), the FARUKxAUTO fine-tune and its inference service, billing reconciliation, payment checkout fixes, security hardening |
+| **Yassine Bouteraa** ([@yassinebouteraa](https://github.com/yassinebouteraa)) | Back end | Backend architecture: Clerk authentication and user sync, the Supabase schema, RLS and SQL functions, the credit and job systems, the Modal transcription integration, the Dhmad payment flow and webhook, PostHog analytics, Gemini cleanup and caption formatting |
 
 ## License
 
-Copyright (c) 2026 Faruk Battikh and Yassine Bouteraa. **All rights reserved.**
+Copyright (c) 2026 Farouk Battikh and Yassine Bouteraa. **All rights reserved.**
 
 This source code is published for viewing and evaluation only. It is not open source: you may not copy, modify, distribute, or deploy it, in whole or in part, without written permission from the authors. See [`LICENSE`](LICENSE).
